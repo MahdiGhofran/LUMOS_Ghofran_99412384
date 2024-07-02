@@ -1,7 +1,7 @@
 Computer Organization - Spring 2024
 ==============================================================
 ## Iran Univeristy of Science and Technology
-## Assignment 1: Assembly code execution on phoeniX RISC-V core
+## Final project
 
 - Name: Mahdi Ghofran
 - Team Members: -
