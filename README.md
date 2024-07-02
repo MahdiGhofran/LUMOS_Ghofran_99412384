@@ -59,40 +59,40 @@ Shifting the product right by the number of fractional bits to restore the fixed
 
 The provided Verilog file appears to define a Fixed-Point Unit (FPU) module. Here’s a summary of its content and functionality:
 
-- Module Name: `Fixed_Point_Unit`
+Module Name: `Fixed_Point_Unit`
 
-- Parameters: 
+Parameters: 
 
-  - `WIDTH`: Data width, default is 32 bits.
-  - `FBITS`: Fractional bits, default is 10 bits.
+`WIDTH`: Data width, default is 32 bits.
+`FBITS`: Fractional bits, default is 10 bits.
 
 Inputs
 
-- `clk`: Clock signal.
-- `reset`: Reset signal.
-- `operand_1`: First operand for operations (WIDTH bits).
-- `operand_2`: Second operand for operations (WIDTH bits).
-- `operation`: Operation selector (2 bits).
+`clk`: Clock signal.
+`reset`: Reset signal.
+`operand_1`: First operand for operations (WIDTH bits).
+`operand_2`: Second operand for operations (WIDTH bits).
+`operation`: Operation selector (2 bits).
 
 Outputs
 
-- `result`: Result of the operation (WIDTH bits).
-- `ready`: Ready signal to indicate the completion of the operation.
+`result`: Result of the operation (WIDTH bits).
+`ready`: Ready signal to indicate the completion of the operation.
 
 Internal Signals
 
-- `root`:
+`root`:
 
  Register to store the result of the square root operation.
 
-- `root_ready`:
+`root_ready`:
 
  Signal to indicate the readiness of the square root operation result.
 
-- `product`: 
+`product`: 
 Register to store the intermediate product of multiplication.
 
-- `product_ready`: 
+`product_ready`: 
 
 Signal to indicate the readiness of the product from the multiplication.
 
