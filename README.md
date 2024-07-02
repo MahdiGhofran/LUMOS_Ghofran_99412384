@@ -8,6 +8,7 @@ Computer Organization - Spring 2024
 - Student ID: 99412384
 - Date:7/2/2024
 
+## Results
 ____________________________________________________________________________________________
 
 ![alt text](img1.png)
@@ -34,6 +35,7 @@ Instruction Decode: The opcode, funct3, funct7, and other fields are decoded acc
 Operand Fetch: Values are read from the register file and assigned to registers RS1 and RS2.
 Execution: The ALU performs operations using operands from RS1, RS2, and immediate values.
 Write-Back: Results are written back to the register file.
+
 3. Fixed-Point Unit
 In addition to the base integer ISA (RV32I), a fixed-point arithmetic unit is added to support approximate fixed-point calculations for instructions like FADD, FSUB, FMUL, and FSQRT. This unit utilizes a Q22.10 fixed-point format with 32-bit registers.
 
@@ -41,7 +43,9 @@ Fixed-Point Arithmetic
 Q Notation: Used to express the number of integer and fractional bits (e.g., Q4.4).
 Range and Precision: Determines the representable range and precision based on the number of bits.
 Conversion: Between fixed-point and integer values using bit shifts.
+
 4. Fixed-Point Multiplication
+
 Algorithm
 Fixed-point multiplication involves:
 
@@ -51,6 +55,7 @@ Verilog Implementation
 _________________________________________________________________________________________________________
 
 ``
+
 module FixedPointMul (
     input [31:0] a,  // Q22.10 format
     input [31:0] b,  // Q22.10 format
@@ -59,6 +64,7 @@ module FixedPointMul (
     // Perform multiplication and then shift right by 10 bits
     assign prod = (a * b) >> 10;
 endmodule
+
 ``
 _________________________________________________________________________________________________________
 
@@ -128,10 +134,12 @@ module FixedPointSqrt #(
         end
     end
 endmodule
+
 ``
 _________________________________________________________________________________________________________
 
 6. Integration into the LUMOS RISC-V Core
+
 Here's how the fixed-point units are integrated into the LUMOS RISC-V core:
 
 
@@ -244,5 +252,6 @@ module LUMOS (
     // ...
 
 endmodule
+
 ``
 _________________________________________________________________________________________________________
