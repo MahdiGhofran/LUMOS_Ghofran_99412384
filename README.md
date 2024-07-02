@@ -20,9 +20,11 @@ ________________________________________________________________________________
 ## Report
 
 1. Introduction
+
 The goal of this project is to study the multi-cycle implementation of a RISC-V processor and add a fixed-point arithmetic unit. This processor will execute a simple RISC-V assembly code to calculate the distance of lines connecting different points on a map using the LUMOS RISC-V processor core. LUMOS stands for Light Utilization with Multicycle Operational Stages. The multi-cycle implementation allows for more complex instructions and better utilization of processor resources. This processor supports a subset of the 32-bit base integer ISA of RISC-V, making it suitable for light applications.
 
 2. LUMOS RISC-V Core
+
 The LUMOS RISC-V core is designed with a multi-cycle implementation, where each instruction is broken down into a series of steps corresponding to various functional units. Each step takes one clock cycle to complete. This approach allows different functional units to be reused across multiple clock cycles, reducing the required hardware.
 
 The processor design is partitioned into data path and control path designs:
@@ -37,6 +39,7 @@ Execution: The ALU performs operations using operands from RS1, RS2, and immedia
 Write-Back: Results are written back to the register file.
 
 3. Fixed-Point Unit
+
 In addition to the base integer ISA (RV32I), a fixed-point arithmetic unit is added to support approximate fixed-point calculations for instructions like FADD, FSUB, FMUL, and FSQRT. This unit utilizes a Q22.10 fixed-point format with 32-bit registers.
 
 Fixed-Point Arithmetic
@@ -69,6 +72,7 @@ endmodule
 _________________________________________________________________________________________________________
 
 5. Fixed-Point Square Root Calculation
+
 Algorithm
 The square root calculation uses a digit-by-digit approach:
 
@@ -81,6 +85,7 @@ If the result is non-negative, retain the digit; otherwise, discard it.
 This approach is extended to fixed-point numbers by accounting for fractional bits.
 _________________________________________________________________________________________________________
 Verilog Implementation
+
 ``
 module FixedPointSqrt #(
     parameter WIDTH = 32,
@@ -144,7 +149,9 @@ Here's how the fixed-point units are integrated into the LUMOS RISC-V core:
 
 
 _________________________________________________________________________________________________________
+
 ``
+
 module LUMOS (
     input clock,
     input reset,
