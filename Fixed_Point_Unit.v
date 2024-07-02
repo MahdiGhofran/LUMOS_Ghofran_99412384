@@ -59,7 +59,7 @@ module Fixed_Point_Unit
     wire    [31 : 0] P2;
     wire    [31 : 0] P3;
     wire    [31 : 0] P4;
-
+    
     reg     [31 : 0] partialProduct1;
     reg     [31 : 0] partialProduct2;
     reg     [31 : 0] partialProduct3;
