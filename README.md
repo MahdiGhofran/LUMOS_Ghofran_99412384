@@ -16,6 +16,8 @@ ________________________________________________________________________________
 
 ![alt text](image.png)
 ____________________________________________________________________________________________
+![alt text](img3.png)
+____________________________________________________________________________________________
 
 ## Report
 
@@ -54,211 +56,89 @@ Fixed-point multiplication involves:
 
 Multiplying two fixed-point numbers, resulting in a product with twice as many fractional bits.
 Shifting the product right by the number of fractional bits to restore the fixed-point format.
-Verilog Implementation
-_________________________________________________________________________________________________________
 
-``
+The provided Verilog file appears to define a Fixed-Point Unit (FPU) module. Here’s a summary of its content and functionality:
 
-module FixedPointMul (
-    input [31:0] a,  // Q22.10 format
-    input [31:0] b,  // Q22.10 format
-    output [31:0] prod  // Q22.10 format
-);
-    // Perform multiplication and then shift right by 10 bits
-    assign prod = (a * b) >> 10;
-endmodule
+- Module Name: `Fixed_Point_Unit`
 
-``
-_________________________________________________________________________________________________________
+- Parameters: 
 
-5. Fixed-Point Square Root Calculation
+  - `WIDTH`: Data width, default is 32 bits.
+  - `FBITS`: Fractional bits, default is 10 bits.
 
-Algorithm
-The square root calculation uses a digit-by-digit approach:
+Inputs
 
-Initialize the result to 0.
-Iterate through pairs of digits from the most significant to the least significant.
-For each iteration:
-Bring down the next pair of digits.
-Append a digit to the result and attempt subtraction.
-If the result is non-negative, retain the digit; otherwise, discard it.
-This approach is extended to fixed-point numbers by accounting for fractional bits.
-_________________________________________________________________________________________________________
-Verilog Implementation
+- `clk`: Clock signal.
+- `reset`: Reset signal.
+- `operand_1`: First operand for operations (WIDTH bits).
+- `operand_2`: Second operand for operations (WIDTH bits).
+- `operation`: Operation selector (2 bits).
 
-``
-module FixedPointSqrt #(
-    parameter WIDTH = 32,
-    parameter FBITS = 10
-)(
-    input clock,
-    input reset,
-    input start,
-    input [WIDTH-1:0] radicand,
-    output reg [WIDTH-1:0] result,
-    output reg done
-);
+Outputs
 
-    localparam ITERATIONS = (WIDTH + FBITS) / 2;
-    
-    reg [WIDTH*2-1:0] radicand_shifted;
-    reg [WIDTH-1:0] partial_result;
-    reg [WIDTH*2-1:0] subtraction_result;
-    reg [5:0] iteration;
+- `result`: Result of the operation (WIDTH bits).
+- `ready`: Ready signal to indicate the completion of the operation.
 
-    always @(posedge clock or posedge reset) begin
-        if (reset) begin
-            result <= 0;
-            partial_result <= 0;
-            radicand_shifted <= 0;
-            subtraction_result <= 0;
-            iteration <= 0;
-            done <= 0;
-        end else if (start) begin
-            result <= 0;
-            partial_result <= 0;
-            radicand_shifted <= {radicand, {(WIDTH){1'b0}}};
-            subtraction_result <= 0;
-            iteration <= 0;
-            done <= 0;
-        end else if (iteration < ITERATIONS) begin
-            // Bring down the next pair of digits
-            radicand_shifted <= radicand_shifted << 2;
-            partial_result <= (partial_result << 1) | 1;
-            subtraction_result <= (subtraction_result << 2) | (radicand_shifted[WIDTH*2-1:WIDTH*2-2]);
-            if (subtraction_result >= partial_result) begin
-                subtraction_result <= subtraction_result - partial_result;
-                result <= (result << 1) | 1;
-            end else begin
-                partial_result <= partial_result - 1;  // discard the subtraction
-                result <= result << 1;
-            end
-            iteration <= iteration + 1;
-        end else begin
-            done <= 1;
-        end
-    end
-endmodule
+Internal Signals
 
-``
-_________________________________________________________________________________________________________
+- `root`:
 
-6. Integration into the LUMOS RISC-V Core
+ Register to store the result of the square root operation.
 
-Here's how the fixed-point units are integrated into the LUMOS RISC-V core:
+- `root_ready`:
 
+ Signal to indicate the readiness of the square root operation result.
 
-_________________________________________________________________________________________________________
+- `product`: 
+Register to store the intermediate product of multiplication.
 
-``
+- `product_ready`: 
 
-module LUMOS (
-    input clock,
-    input reset,
-    // other necessary inputs and outputs
-);
+Signal to indicate the readiness of the product from the multiplication.
 
-    // Register and wire declarations
-    reg [31:0] PC, ir, aluResult, memoryDataRegister;
-    wire [31:0] instruction, aluOut, regData1, regData2, immediate;
-    reg instructionOrData, memoryReady, irWrite, aluSrc1, aluSrc2;
-    wire [31:0] fpRegData1, fpRegData2, fpResult;
-    reg fpWe;
-    wire sqrtDone;
-    // Add other necessary registers and wires
+Functionality
 
-    // FSM States
-    typedef enum logic [2:0] {
-        FETCH,
-        DECODE,
-        EXECUTE,
-        MEMORY,
-        WRITEBACK
-    } state_t;
-    state_t currentState, nextState;
+1. Arithmetic Operations:
 
-    // Instantiate the fixed-point register file
-    FixedPointRegisterFile fpRegFile (
-        .clock(clock),
-        .reset(reset),
-        .we(fpWe),
-        .rs1(ir[19:15]),
-        .rs2(ir[24:20]),
-        .rd(ir[11:7]),
-        .wd(fpResult),
-        .rd1(fpRegData1),
-        .rd2(fpRegData2)
-    );
+The `always @(*)` block contains a case statement that performs the operation based on the `operation` input:
+Addition (`FPU_ADD`): `result <= operand_1 + operand_2;`
+Subtraction (`FPU_SUB`): `result <= operand_1 - operand_2;`
+Multiplication (`FPU_MUL`): `result <= product[WIDTH + FBITS - 1 : FBITS];`
+Square Root (`FPU_SQRT`): `result <= root;`
+Default case: `result <= 'bz;`
+The `ready` signal is set to 1 for addition and subtraction, and is linked to specific ready signals for multiplication and square root operations.
 
-    // Instantiate the fixed-point multiplier
-    FixedPointMul fpMul (
-        .a(fpRegData1),
-        .b(fpRegData2),
-        .prod(fpResult)
-    );
+2. Reset Handling:
 
-    // Instantiate the fixed-point square root calculator
-    FixedPointSqrt #(
-        .WIDTH(32),
-        .FBITS(10)
-    ) fpSqrt (
-        .clock(clock),
-        .reset(reset),
-        .start(startSqrt),
-        .radicand(fpRegData1),
-        .result(fpResult),
-        .done(sqrtDone)
-    );
+The `always @(posedge reset)` block sets the `ready` signal to 0 on reset.
 
-    // Instruction Fetch
-    always @(posedge clock or posedge reset) begin
-        if (reset) begin
-            currentState <= FETCH;
-            PC <= 0;
-        end else begin
-            currentState <= nextState;
-            if (irWrite)
-                ir <= instruction;
-            // Add other state transitions and actions
-        end
-    end
+3. Multiplier Circuit :
 
-    // FSM Next State Logic
-    always @(*) begin
-        case (currentState)
-            FETCH: begin
-                instructionOrData = 1; // Set to fetch instruction
-                if (memoryReady) begin
-                    irWrite = 1;
-                    nextState = DECODE;
-                end else begin
-                    nextState = FETCH;
-                end
-            end
-            DECODE: begin
-                // Decode logic
-                nextState = EXECUTE;
-            end
-            EXECUTE: begin
-                // Execution logic
-                nextState = MEMORY;
-            end
-            MEMORY: begin
-                // Memory access logic
-                nextState = WRITEBACK;
-            end
-            WRITEBACK: begin
-                // Write-back logic
-                nextState = FETCH;
-            end
-            default: nextState = FETCH;
-        endcase
-    end
+The module defines a 64-bit product register to store multiplication results.
+ It uses four 16-bit multipliers to break down the multiplication of 32-bit operands:
+     `A1` and `A2` are lower and upper 16 bits of `operand_1`.
+     `B1` and `B2` are lower and upper 16 bits of `operand_2`.
+     The partial products `P1`, `P2`, `P3`, and `P4` are computed using these 16-bit segments.
+     The partial products are summed to form the final product.
 
-    // ALU and other data path components
-    // ...
+Multipliers
 
-endmodule
+Multiplier Instances:
 
-``
-_________________________________________________________________________________________________________
+ The module uses four instances of another module named `Multiplier` to compute partial products:
+    ```verilog
+    Multiplier multiplier1 (.operand_1(A1), .operand_2(B1), .product(P1));
+    Multiplier multiplier2 (.operand_1(A1), .operand_2(B2), .product(P2));
+    Multiplier multiplier3 (.operand_1(A2), .operand_2(B1), .product(P3));
+    Multiplier multiplier4 (.operand_1(A2), .operand_2(B2), .product(P4));
+    ```
+
+Missing Details
+
+ The file references an included file `Defines.vh`, which likely contains macro definitions for the operations (e.g., `FPU_ADD`, `FPU_SUB`, etc.).
+ The full implementation details of the square root circuit are not visible in the provided snippet.
+ The `Multiplier` module is instantiated but its internal implementation is not provided in this file.
+
+Summary
+
+The `Fixed_Point_Unit` module is designed to perform fixed-point arithmetic operations, including addition, subtraction, multiplication, and square root. It uses parameterized bit-widths and relies on additional modules and macros to function correctly. The design separates arithmetic operations into combinational logic with readiness signaling and reset handling to ensure proper operation sequencing.
